@@ -1,6 +1,60 @@
 #include <iostream>
 #include <string>
+#include <Windows.h>
 using namespace std;
+
+struct Logger {
+	static bool is_print_logs;
+	static const unsigned short _debug = 10;
+	static const unsigned short _info = 11;
+	static const unsigned short _error = 12;
+	static const unsigned short _warning = 14;
+	static const unsigned short _default = 7;
+
+	static void debug(string message)
+	{
+		if (is_print_logs)
+		{
+			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+			SetConsoleTextAttribute(hConsole, _debug);
+			cout << "DEBUG: " << message << endl;
+			SetConsoleTextAttribute(hConsole, _default);
+		}
+	}
+
+	static void info(string message)
+	{
+		if (is_print_logs)
+		{
+			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+			SetConsoleTextAttribute(hConsole, _info);
+			cout << "INFO: " << message << endl;
+			SetConsoleTextAttribute(hConsole, _default);
+		}
+	}
+	static void error(string message)
+	{
+		if (is_print_logs)
+		{
+			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+			SetConsoleTextAttribute(hConsole, _error);
+			cout << "ERROR: " << message << endl;
+			SetConsoleTextAttribute(hConsole, _default);
+		}
+	}
+	static void warning(string message)
+	{
+		if (is_print_logs)
+		{
+			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+			SetConsoleTextAttribute(hConsole, _warning);
+			cout << "WARNING: " << message << endl;
+			SetConsoleTextAttribute(hConsole, _default);
+		}
+
+	}
+};
+
 
 class Reservoir {
 private:
@@ -8,6 +62,7 @@ private:
 	double _width, _length, _depth;
 public:
 	Reservoir() {
+		Logger::debug("New reservoir created with null parameters");
 		_name = "";
 		_type = "";
 		_width = 0;
@@ -15,6 +70,7 @@ public:
 		_depth = 0;
 	}
 	explicit Reservoir(string name, string type, double width, double length, double depth) {
+		Logger::debug("New reservoir created with custom parameters");
 		_type = type;
 		_name = name;
 		_width = width;
@@ -31,27 +87,27 @@ public:
 	}
 	// length, width and depth in kilometres
 
-	double GetVolume() {
+	inline double GetVolume() const {
 		return (_width * _length * _depth);
 	}
 
-	double GetArea() {
+	inline double GetArea() const {
 		return (_width * _length);
 	}
 
-	string GetName() {
+	inline string GetName() const {
 		return _name;
 	}
-	string GetType() {
+	inline string GetType() const {
 		return _type;
 	}
-	double GetWidth() {
+	inline double GetWidth() const {
 		return _width;
 	}
-	double GetLength() {
+	inline double GetLength() const {
 		return _length;
 	}
-	double GetDepth() {
+	inline double GetDepth() const {
 		return _depth;
 	}
 	void SetName(string name) {
@@ -85,10 +141,12 @@ private:
 	int _reservoirsCount;
 public:
 	List() {
+		Logger::debug("Created a list of class objects with null parameters");
 		_reservoirs = nullptr;
 		_reservoirsCount = 0;
 	}
 	explicit List(Reservoir* reservoirs, int reservoirsCount) {
+		Logger::debug("Created a list of class objects with custom parameters");
 		_reservoirs = reservoirs;
 		_reservoirsCount = reservoirsCount;
 	}
@@ -98,6 +156,9 @@ public:
 	}
 	
 	void AddReservoir(Reservoir reservoir) {
+		Logger::debug("Created new list of class objects");
+		Logger::info("New object added to a new list of objects");
+
 		Reservoir* newReservoir = new Reservoir[_reservoirsCount + 1];
 
 		for (int i = 0; i < _reservoirsCount; i++) {
@@ -105,11 +166,14 @@ public:
 		}
 		newReservoir[_reservoirsCount] = reservoir;
 		_reservoirsCount++;
+		Logger::error("Old list deleted");
 		delete[] _reservoirs;
 		_reservoirs = newReservoir;
 	}
 
 	void RemoveReservoirByName(string target) {
+		Logger::debug("Created new list of class objects");
+		Logger::info("Object removed from a list of objects");
 		Reservoir* newReservoir = new Reservoir[_reservoirsCount - 1];
 		int index = NULL;
 		for (int i = 0; i < _reservoirsCount; i++) {
@@ -125,6 +189,7 @@ public:
 				newReservoir[i - 1] = _reservoirs[i];
 			}
 			_reservoirsCount--;
+			Logger::error("Old list deleted");
 			delete[] _reservoirs;
 			_reservoirs = newReservoir;
 			cout << "\n---------------------------\n";
@@ -193,6 +258,7 @@ public:
 	}
 
 	void Print() const {
+		Logger::info("Objects from list printed in console");
 		cout << "\n---------------------------\n";
 		for (int i = 0; i < _reservoirsCount; i++) {
 			cout << "Reservoir " << i + 1 << ":" << endl;
@@ -203,21 +269,26 @@ public:
 	}
 
 	void Copy(string name) {
+		Logger::info("Created a copy of object");
 		int index = NULL;
 		for (int i = 0; i < _reservoirsCount; i++) {
 			if (_reservoirs[i].GetName() == name) {
 				index = i;
 			}
 		}
+		Logger::info("Copy of object added to a list of object");
 		AddReservoir(Reservoir::Reservoir(_reservoirs[index].GetName(), _reservoirs[index].GetType(), _reservoirs[index].GetWidth(), _reservoirs[index].GetLength(), _reservoirs[index].GetDepth()));
 	}
 
 };
 
+bool Logger::is_print_logs = true;
+
 
 int main() {
 	int choice;
 	List list;
+
 	Reservoir reservoir1("Indian", "Ocean", 17.5, 18.5, 20.5);
 	Reservoir reservoir2("Calm", "Ocean", 17.5, 18.5, 20.5);
 	Reservoir reservoir3("Atlantic", "Ocean", 17.5, 18.5, 20.5);
@@ -236,6 +307,7 @@ int main() {
 		cout << "4.Compare reservoirs by type" << endl;
 		cout << "5.Compare areas of similar type reservoirs" << endl;
 		cout << "6.Duplicate reservoirs by name" << endl;
+		cout << "7.Switch printing logs" << endl;
 		cout << "\n----------MENU------------\n";
 
 		cin >> choice;
@@ -288,6 +360,15 @@ int main() {
 			getline(cin, name);
 			list.Copy(name);
 		}
+		case 7:
+			if (Logger::is_print_logs == true) {
+				Logger::info("Turn off printing logs");
+				Logger::is_print_logs = false;
+			}
+			else {
+				Logger::is_print_logs = true;
+				Logger::info("Turn on printing logs");
+			}
 		}
 	}
 
